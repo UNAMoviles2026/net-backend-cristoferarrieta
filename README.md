@@ -9,6 +9,8 @@ Install the following tools before running the project locally:
 - .NET 8 SDK
 - Docker
 
+Before running the database container, make sure Docker Desktop (or the Docker daemon) is running.
+
 ## Run SQL Server (Docker)
 
 Start a local SQL Server container with this command:
@@ -16,7 +18,7 @@ Start a local SQL Server container with this command:
 ```bash
 docker run -e "ACCEPT_EULA=Y" \
 -e "SA_PASSWORD=YourStrong@Pass123" \
--p 1433:1433 \
+-p 1435:1433 \
 --name sqlserver-lab \
 -d mcr.microsoft.com/mssql/server:2022-latest
 ```
@@ -25,7 +27,7 @@ Use these database credentials:
 
 - Username: `sa`
 - Password: `YourStrong@Pass123`
-- Port: `1433`
+- Port: `1435`
 
 ## Create Database
 
@@ -43,7 +45,7 @@ Open `appsettings.json` and update the `ConnectionStrings` section so it points 
 
 ```json
 "ConnectionStrings": {
-	"DefaultConnection": "Server=localhost,1433;Database=reservations;User Id=sa;Password=YourStrong@Pass123;TrustServerCertificate=True;"
+	"DefaultConnection": "Server=localhost,1435;Database=reservations;User Id=sa;Password=YourStrong@Pass123;Encrypt=False;TrustServerCertificate=True;"
 }
 ```
 
@@ -53,25 +55,24 @@ Restore the project dependencies:
 
 ```bash
 dotnet restore
+dotnet tool restore
 ```
 
 ## Run Migrations
 
-Install the Entity Framework CLI tool and apply the database schema:
+Restore the local Entity Framework CLI tool and apply the database schema:
 
 ```bash
-dotnet tool install --global dotnet-ef
-dotnet ef migrations add InitialCreate
+dotnet tool restore
 dotnet ef database update
 ```
 
 What each command does:
 
-- `dotnet tool install --global dotnet-ef`: installs the EF Core CLI tool.
-- `dotnet ef migrations add InitialCreate`: creates the first migration from your current model.
+- `dotnet tool restore`: restores the local EF Core CLI tool configured for the repository.
 - `dotnet ef database update`: applies migrations to the `reservations` database.
 
-If the repository already contains migrations, you can usually skip `dotnet ef migrations add InitialCreate` and run only `dotnet ef database update`.
+This repository already contains migrations, so you only need `dotnet ef database update`.
 
 ## Run the Project
 
@@ -118,7 +119,7 @@ dotnet ef database update
 ## Troubleshooting
 
 - Docker container not running: verify the container is up with `docker ps` and start it if needed.
-- Port 1433 already in use: stop the conflicting service or map SQL Server to a different local port and update the connection string.
+- Port 1433 already in use: map SQL Server to a different local port such as `1435` and update the connection string.
 - Login failed for user 'sa': confirm the container is using `YourStrong@Pass123` and that the connection string matches it exactly.
-- Invalid connection string: verify the server, database, username, password, and `TrustServerCertificate=True` values in `appsettings.json`.
+- Invalid connection string: verify the server, database, username, password, `Encrypt=False`, and `TrustServerCertificate=True` values in `appsettings.json`.
 - Missing migrations: run `dotnet ef migrations add InitialCreate` if no migration files exist yet, then run `dotnet ef database update`.
