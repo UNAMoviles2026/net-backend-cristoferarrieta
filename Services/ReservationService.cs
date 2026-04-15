@@ -42,6 +42,12 @@ public class ReservationService : IReservationService
     return await _reservationRepository.DeleteAsync(id);
   }
 
+  public async Task<List<ReservationResponse>> GetByDateAsync(DateOnly date)
+  {
+    var reservations = await _reservationRepository.GetByDateAsync(date);
+    return reservations.Select(ReservationMapper.ToResponse).ToList();
+  }
+
   private static bool HasOverlap(TimeOnly startTime, TimeOnly endTime, List<Reservation> existingReservations)
   {
     return existingReservations.Any(r =>
